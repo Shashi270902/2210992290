@@ -45,11 +45,7 @@ async function getPostsByUserId(userId) {
   }
 }
 
-/**
- * Get comments for a post
- * @param {string} postId - The post ID to fetch comments for
- * @returns {Array} Array of comment objects
- */
+
 async function getCommentsByPostId(postId) {
   // Check cache first
   const cacheKey = `postComments_${postId}`;
@@ -78,31 +74,27 @@ async function getCommentsByPostId(postId) {
   }
 }
 
-/**
- * Get the most popular posts (posts with most comments)
- * @returns {Array} Array of popular post objects
- */
+
 async function getPopularPosts() {
-  // If we have cached popular posts with comment counts, use them
+  
   if (postsCache.mostCommented.length > 0) {
     return postsCache.mostCommented;
   }
   
-  // Otherwise, we need to build this data
-  // For the purpose of this example, we'll just fetch some posts and their comments
+
   try {
-    // Get some users
+  
     const users = await httpClient.get('users');
-    const userIds = Object.keys(users.users).slice(0, 5); // Take a few users
+    const userIds = Object.keys(users.users).slice(0, 5); 
     
-    // For each user, get their posts
+   
     const allPosts = [];
     for (const userId of userIds) {
       const posts = await getPostsByUserId(userId);
       allPosts.push(...posts);
     }
     
-    // For each post, get comment count
+   
     const postsWithComments = await Promise.all(
       allPosts.map(async (post) => {
         const comments = await getCommentsByPostId(post.id);
@@ -113,18 +105,15 @@ async function getPopularPosts() {
       })
     );
     
-    // Sort by comment count and find the maximum
     postsWithComments.sort((a, b) => b.commentCount - a.commentCount);
     
     if (postsWithComments.length > 0) {
       const maxCommentCount = postsWithComments[0].commentCount;
       
-      // Filter posts with max comment count
       const mostCommentedPosts = postsWithComments.filter(
         post => post.commentCount === maxCommentCount
       );
       
-      // Update cache
       postsCache.mostCommented = mostCommentedPosts;
       
       return mostCommentedPosts;
@@ -137,45 +126,33 @@ async function getPopularPosts() {
   }
 }
 
-/**
- * Get the latest posts
- * @returns {Array} Array of latest post objects
- */
+
 async function getLatestPosts() {
-  // If we have cached latest posts and they're recent, use them
   if (postsCache.latestPosts.length >= config.latestPostsCount) {
     return postsCache.latestPosts.slice(0, config.latestPostsCount);
   }
   
-  // Otherwise, build the latest posts data
   try {
-    // Get some users
     const users = await httpClient.get('users');
-    const userIds = Object.keys(users.users).slice(0, 5); // Take a few users
+    const userIds = Object.keys(users.users).slice(0, 5); 
     
-    // For each user, get their posts
     
 
-// For each user, get their posts
 const allPosts = [];
 for (const userId of userIds) {
   const posts = await getPostsByUserId(userId);
   allPosts.push(...posts);
 }
 
-// Add timestamp to each post if not already present
 const postsWithTimestamp = allPosts.map(post => ({
   ...post,
   timestamp: post.timestamp || new Date().getTime()
 }));
 
-// Sort by timestamp (newest first)
 postsWithTimestamp.sort((a, b) => b.timestamp - a.timestamp);
 
-// Take only the latest posts
 const latestPosts = postsWithTimestamp.slice(0, config.latestPostsCount);
 
-// Update cache
 postsCache.latestPosts = latestPosts;
 
 return latestPosts;
@@ -185,55 +162,38 @@ throw new Error('Failed to fetch latest posts');
 }
 }
 
-/**
-* Update the latest posts cache with new posts
-* @param {Array} newPosts - Array of new posts to consider
-*/
+
 function updateLatestPosts(newPosts) {
-// Add timestamp to new posts
 const timestamp = new Date().getTime();
 const postsWithTimestamp = newPosts.map(post => ({
 ...post,
 timestamp
 }));
 
-// Combine with existing latest posts
 const allPosts = [...postsCache.latestPosts, ...postsWithTimestamp];
 
-// Sort by timestamp (newest first)
 allPosts.sort((a, b) => b.timestamp - a.timestamp);
 
-// Update latest posts cache (keep only the top N)
 postsCache.latestPosts = allPosts.slice(0, config.latestPostsCount);
 }
 
-/**
-* Update the most commented posts cache with new comment count
-* @param {string} postId - The post ID
-* @param {number} commentCount - The number of comments
-*/
+
 function updateMostCommentedPosts(postId, commentCount) {
-// Get the post from cache
 const post = postsCache.byId[postId];
 if (!post) return;
 
-// Add comment count to post
 const postWithComments = {
 ...post,
 commentCount
 };
 
-// If most commented is empty or this post has more comments than the current most commented
 if (
 postsCache.mostCommented.length === 0 ||
 commentCount > postsCache.mostCommented[0].commentCount
 ) {
-// New maximum - replace all current most commented
 postsCache.mostCommented = [postWithComments];
 } 
-// If this post has the same number of comments as the current most commented
 else if (commentCount === postsCache.mostCommented[0].commentCount) {
-// Add to most commented if not already present
 const exists = postsCache.mostCommented.some(p => p.id === postId);
 if (!exists) {
   postsCache.mostCommented.push(postWithComments);
