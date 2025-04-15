@@ -1,26 +1,19 @@
-/**
- * Service for processing post-related requests
- */
+
 const httpClient = require('../utils/httpClient');
 const cacheManager = require('../utils/cacheManager');
 const config = require('../config');
 
-// In-memory store for post data
 let postsCache = {
-  byId: {},           // Posts indexed by ID
-  byUser: {},         // Posts indexed by user ID
-  commentsByPost: {}, // Comments indexed by post ID
-  latestPosts: [],    // Array of most recent posts
-  mostCommented: []   // Array of most commented posts
+  byId: {},           
+  byUser: {},         
+  commentsByPost: {}, 
+  latestPosts: [],   
+  mostCommented: []   
 };
 
-/**
- * Get posts by user ID
- * @param {string} userId - The user ID to fetch posts for
- * @returns {Array} Array of post objects
- */
+
 async function getPostsByUserId(userId) {
-  // Check cache first
+  
   const cacheKey = `userPosts_${userId}`;
   const cachedPosts = cacheManager.get(cacheKey);
   if (cachedPosts) {
@@ -30,14 +23,11 @@ async function getPostsByUserId(userId) {
   try {
     const response = await httpClient.get(`users/${userId}/posts`);
     const posts = response.posts || [];
-    
-    // Update cache
+  
     cacheManager.set(cacheKey, posts);
     
-    // Update in-memory store
     postsCache.byUser[userId] = posts;
     
-    // Update individual post cache
     posts.forEach(post => {
       postsCache.byId[post.id] = {
         ...post,

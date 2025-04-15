@@ -1,17 +1,10 @@
-/**
- * HTTP client utility for making requests to the evaluation service
- */
+
 const axios = require('axios');
 const config = require('../config');
 
 // Store authentication credentials
 let authCredentials = null;
 
-/**
- * Register with the evaluation service
- * Note: In a real app, these would be stored securely in environment variables
- * @returns {Object} The registration response
- */
 async function register() {
   try {
     const response = await axios.post(`${config.serverUrl}/register`, {
@@ -31,21 +24,11 @@ async function register() {
   }
 }
 
-/**
- * Authenticate with the evaluation service
- * @returns {string} The access token
- */
 async function authenticate() {
   try {
-    // Use stored credentials or register first
+   
     if (!authCredentials) {
-      // In a real app, credentials would be loaded from environment variables or a secure store
-      // For this example, we'll assume they're already available
-      
-      // Uncomment to register if needed
-      // authCredentials = await register();
-      
-      // For now, set dummy credentials
+     
       authCredentials = {
         email: process.env.EMAIL || "your-email@example.com",
         name: process.env.NAME || "Your Name",
@@ -69,12 +52,7 @@ async function authenticate() {
   }
 }
 
-/**
- * Generic method to make HTTP requests to the evaluation service
- * @param {string} endpoint - The API endpoint to call
- * @param {Object} options - Request options
- * @returns {Object} The response data
- */
+
 async function makeRequest(endpoint, options = {}) {
   try {
     // Ensure we have a valid access token
@@ -113,23 +91,11 @@ async function makeRequest(endpoint, options = {}) {
   }
 }
 
-/**
- * Shorthand method for GET requests
- * @param {string} endpoint - The API endpoint to call
- * @param {Object} options - Request options
- * @returns {Object} The response data
- */
+
 async function get(endpoint, options = {}) {
   return makeRequest(endpoint, { ...options, method: 'get' });
 }
 
-/**
- * Shorthand method for POST requests
- * @param {string} endpoint - The API endpoint to call
- * @param {Object} data - Request body data
- * @param {Object} options - Request options
- * @returns {Object} The response data
- */
 async function post(endpoint, data, options = {}) {
   return makeRequest(endpoint, { ...options, method: 'post', data });
 }
